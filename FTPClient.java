@@ -1,5 +1,3 @@
-package cis457proj2_src;
-
 import java.io.*; 
 import java.net.*;
 import java.util.*;

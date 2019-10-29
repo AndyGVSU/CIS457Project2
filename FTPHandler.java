@@ -1,7 +1,3 @@
-package cis457proj2_src;
-
-import cis457proj2_src.*;
-
 public class FTPHandler {
 
 	public static void main() {
