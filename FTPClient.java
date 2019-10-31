@@ -9,6 +9,8 @@ import javax.swing.*;
 public class FTPClient implements Runnable {
 	
 private ArrayList<String> receivedRecords = new ArrayList<String>();
+private String receivedCommand = null;
+boolean newCommand = false;
 
 //public static void main(String argv[]) throws Exception
 //public void receiveCommand(String command) throws Exception
@@ -46,10 +48,16 @@ public void run()
 
 	while(isOpen) {
 
-        System.out.println("\nInput next command:\nconnect <host> <port> | quit | list | stor: <file> | retr: <file>");  
-
-	BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-	sentence = inFromUser.readLine();
+        //System.out.println("\nInput next command:\nconnect <host> <port> | quit | list | stor: <file> | retr: <file>");  
+	
+	//BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+	
+	while(!newCommand) {
+		// do nothing
+	}
+	
+	sentence = receivedCommand;
+	newCommand = false;
     
 	String command;
 	tokens = null;
@@ -253,5 +261,10 @@ System.out.println(e);
 
 public ArrayList<String> getReceivedRecords() {
 	return receivedRecords;
+}
+
+public void setCommand(String s) {
+	receivedCommand = s;
+	newCommand = true;
 }
 }
