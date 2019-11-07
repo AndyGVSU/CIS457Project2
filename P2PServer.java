@@ -96,20 +96,34 @@ private static class HostThread implements Runnable {
 				String hostUsername = inFromClient.readUTF();
 				String hostName = inFromClient.readUTF();
 				String hostSpeed = inFromClient.readUTF();
+				Int userIP = controlSocket.getInetAddress();
 
-				//register data in database...
-				//if user doesn't exist...
-					//update database
+				Database db = DatabaseBuilder.open(new File("gvnapster.mdb"));
+				Table users = db.getTable("Users");
+				Table files = db.getTable("SharedFiles");
+				Cursor userCursor = CursorBuilder.createCursor(users);
+				Cursor defCursor = CursorBuilder.createCursor(files);
 				
+				//register user in database...
+				
+				//if user doesn't exist...
+				int i = 0;
+				for(Row row : userCursor.newEntryIterable(hostName)){
+					//update database
+					i++;
+				}
+				if(i==0)
+					users.addRow(user.userID, first, last, userName, hostName, userIP, clientDataPort);
 				//upload shared file descriptions
 
 				//establish data connection
 				dataSocket = new Socket(nextConnection, port);
                 		DataInputStream dataInFromClient = new DataInputStream(dataSocket.getInputStream());
 				//receive host file descriptions (summary text file)...
-				
+				fileName = dataInFromClient.readUTF();
+				fileDesc = dataInFromClient.readUTF();
 				//add file description to database...
-				
+				files.addRow(files.fileID, users.userID, fileName, files.type, fileDesc);
 				//client is now connected!
 				break;
 			case "request":
@@ -126,7 +140,11 @@ private static class HostThread implements Runnable {
 				//for each matching description 
 					//get filename, speed, hostname
 					//send data to client
-					outToClient.writeUTF();
+				for(Row row : defCursor.newEntryIterable(fileDesc)){
+					db.name = outToClient.writeUTF();
+					hostSpeed= outToClient.writeUTF();
+					hostName = outToClient.writeUTF();
+				}
 				//returned all matching records
 				outToClient.writeUTF("done");
 				
@@ -235,10 +253,13 @@ private static class HostThread implements Runnable {
 
 			//set host's availability to false:
 			//all files stored in that host will be irretrievable
+			//Remove user from the db
 			break;
 			}
 		}
 		}
+		//Close the db to avoid db corruption
+		db.close();
 		controlSocket.close();
 		outToClient.close();
 		inFromClient.close();
