@@ -120,8 +120,8 @@ private static class HostThread implements Runnable {
 				dataSocket = new Socket(nextConnection, port);
                 		DataInputStream dataInFromClient = new DataInputStream(dataSocket.getInputStream());
 				//receive host file descriptions (summary text file)...
-				fileName = dataInFromClient.readUTF();
-				fileDesc = dataInFromClient.readUTF();
+				String fileName = dataInFromClient.readUTF();
+				String ileDesc = dataInFromClient.readUTF();
 				//add file description to database...
 				files.addRow(files.fileID, users.userID, fileName, files.type, fileDesc);
 				//client is now connected!
@@ -254,6 +254,9 @@ private static class HostThread implements Runnable {
 			//set host's availability to false:
 			//all files stored in that host will be irretrievable
 			//Remove user from the db
+			for(Row r : userCursor.newEntryIterable(hostName)){
+				deleteRow(r);
+			}
 			break;
 			}
 		}
