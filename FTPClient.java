@@ -6,22 +6,22 @@ import java.lang.*;
 import javax.swing.*;
 
 //now must be an object (cannot run main(); GUI runs main )
-public class FTPClient implements Runnable {
+public class FTPClient extends Thread {
 	
 private ArrayList<String> receivedRecords = new ArrayList<String>();
 private String receivedCommand = null;
 boolean newCommand = false;
 
-//public static void main(String argv[]) throws Exception
-//public void receiveCommand(String command) throws Exception
-public void run()
-	{
+public void run() {
 	try {
     String sentence; 
     String modifiedSentence; 
     String statusCode;
     String fileName = null;
-    StringTokenizer tokens;
+	StringTokenizer tokens;
+	String userHostname;
+	String username;
+	String connectionSpeed;
     
    	int controlPort = 12000;
 	int command_port = 0;
@@ -44,7 +44,7 @@ public void run()
 	Socket dataSocket = null;
 	Socket ControlSocket = null;
 	
-	System.out.println("\n|| FTP Client Project 1 ~ CIS 457 ||");
+	//System.out.println("\n|| FTP Client Project 1 ~ CIS 457 ||");
 
 	while(isOpen) {
 
@@ -53,7 +53,7 @@ public void run()
 	//BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 	
 	while(!newCommand) {
-		// do nothing
+		// wait for new command
 	}
 	
 	sentence = receivedCommand;
@@ -102,35 +102,39 @@ public void run()
 		}
 
 	}
-	else if(sentence.equals("connect2p2")) {
+	else if(command.equals("connectp2p")) {
 		//connect with P2P server
 		
 		String serverName = tokens.nextToken();
 		controlPort = Integer.parseInt(tokens.nextToken());
+		username = tokens.nextToken();
+		userHostname = tokens.nextToken();
+		connectionSpeed = tokens.nextToken();
 
-    		try {
-    			System.out.println("Connecting to " + serverName + ":" + controlPort);
-				
-    			if (P2PSocket != null) {
-    				outToP2P.close();
-    				inFromP2P.close();
-    				P2PSocket.close();
-    			}
-    			
-    			P2PSocket = new Socket(serverName, controlPort);
-    			System.out.println("You are connected to P2P Server " + serverName + ":" + controlPort);
+		try {
+			System.out.println("Connecting to " + serverName + ":" + controlPort);
+			
+			if (P2PSocket != null) {
+				outToP2P.close();
+				inFromP2P.close();
+				P2PSocket.close();
+			}
+			
+			P2PSocket = new Socket(serverName, controlPort);
+			System.out.println("You are connected to P2P Server " + serverName + ":" + controlPort);
 			P2PconnectionEstablished = true;
 
-        		outToP2P = new DataOutputStream(P2PSocket.getOutputStream());
-        		inFromP2P = new DataInputStream(P2PSocket.getInputStream());
-        	
+				outToP2P = new DataOutputStream(P2PSocket.getOutputStream());
+				inFromP2P = new DataInputStream(P2PSocket.getInputStream());
+			
 			outToP2P.writeUTF(command);
-    		}
-    		catch (Exception e) {
-    			System.out.println("Failed to set up P2P socket.");
-    			P2PconnectionEstablished = false;
+		}
+		catch (Exception e) {
+			System.out.println("Failed to set up P2P socket.");
+			P2PconnectionEstablished = false;
 		}
 	}	
+	//remove?
          else if(sentence.equals("quit")) {
         	 outToServer.writeUTF(command);
         	 outToServer.writeInt(command_port);
@@ -211,7 +215,6 @@ public void run()
 		}
 	}
 	 else if (P2PconnectionEstablished && command.equals("request:")) {
-	
 		String keyword = fileName;
 		//send keyword (from command argument - passed automatically from GUI)
 		outToP2P.writeUTF(keyword);

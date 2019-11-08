@@ -2,8 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-
-public class FTPServer implements Runnable{
+public class FTPServer extends Thread {
  
 //public static void main(String[] args) throws IOException {
 public void run() {
