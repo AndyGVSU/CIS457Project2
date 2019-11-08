@@ -1,7 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
-
+import javax.swing.*;
 import javax.swing.BoxLayout;
+import java.util.*;
 
 public class P2PGUI extends Frame {
 
@@ -29,30 +30,53 @@ public class P2PGUI extends Frame {
     private TextField commandInput;
     private Button commandButton;
     private TextArea outputArea;
+
+    private FTPHandler handler;
+    private FTPClient client;
+    ArrayList<String> receivedRecords;
     
-    public P2PGUI() {
+    public P2PGUI(FTPHandler h) {
 
         super(TITLE);
         setSize(400,600);
         setVisible(true);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        
+
+        this.handler = h;
+        this.client = handler.getClient();
         //First section for connecting to server (takes their info) -------
-        Panel panel1 = new Panel(new FlowLayout());
-        Label serverDisplay = new Label("Server Hostname:");
-        TextField serverInput = new TextField("",20);
-        Label portDisplay = new Label("Port:");
-        TextField portInput = new TextField("",20);
-        Label userDisplay = new Label("Username:");
-        TextField userInput = new TextField("",20);
-        Label hostDisplay = new Label("Hostname:");
-        TextField hostInput = new TextField("",20);
-        Label speedDisplay = new Label("Speed:");
-        Choice speedInput = new Choice();
+         panel1 = new Panel(new FlowLayout());
+         serverDisplay = new Label("Server Hostname:");
+         serverInput = new TextField("",20);
+         portDisplay = new Label("Port:");
+         portInput = new TextField("",20);
+         userDisplay = new Label("Username:");
+         userInput = new TextField("",20);
+         hostDisplay = new Label("Hostname:");
+         hostInput = new TextField("",20);
+         speedDisplay = new Label("Speed:");
+         speedInput = new Choice();
         speedInput.add("Ethernet"); //need more options?
         speedInput.add("Wifi");
-        Button connectButton = new Button("Connect");
-        
+        speedInput.add("Modem");
+         connectButton = new Button("Connect");
+         connectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                
+                String serverName = serverInput.getText();
+                String port = portInput.getText();
+                String username = userInput.getText();
+                String hostname = hostInput.getText();
+                String speed = speedInput.getItem(speedInput.getSelectedIndex());
+
+                if (!username.isEmpty() && !hostname.isEmpty() &&
+                    !port.isEmpty() && !speed.isEmpty()) {
+                        client.setCommand("connectp2p "+serverName + " "+
+                            port+" "+username+" "+hostname+" "+speed);
+                    }
+                }});
+
+
         //add them in the proper order...
         panel1.add(serverDisplay);
         panel1.add(serverInput);
@@ -68,22 +92,38 @@ public class P2PGUI extends Frame {
         add(panel1);
         
         //Second section for file search -------
-         Panel panel2 = new Panel(new FlowLayout());
-         TextField keywordInput = new TextField("",20);
-         Button keywordButton = new Button("Search Keyword");
-         TextArea recordArea = new TextArea();
-        
+          panel2 = new Panel(new FlowLayout());
+          keywordInput = new TextField("",20);
+          keywordButton = new Button("Search Keyword");
+          keywordButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                String keyword = keywordInput.getText();
+                if (!keyword.isEmpty()) {
+                        client.setCommand("request: "+keyword);
+                    }
+                }});
+          
+          recordArea = new TextArea();
+          
         panel2.add(keywordInput);
         panel2.add(keywordButton);
         panel2.add(recordArea);
         add(panel2);
         
         //third section: commands
-         Panel panel3 = new Panel(new FlowLayout());
-         Label commandDisplay = new Label("Enter command:");
-         TextField commandInput = new TextField("",20);
-         Button commandButton = new Button("Go");
-         TextArea outputArea = new TextArea();
+          panel3 = new Panel(new FlowLayout());
+          commandDisplay = new Label("Enter command:");
+          commandInput = new TextField("",20);
+          commandButton = new Button("Go");
+          commandButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                String cmd = commandInput.getText();
+                if (!cmd.isEmpty()) {
+                        client.setCommand(cmd);
+                    }
+                }});
+                
+          outputArea = new TextArea();
         outputArea.setEditable(false);
         
         panel3.add(commandDisplay);
@@ -93,10 +133,18 @@ public class P2PGUI extends Frame {
         add(panel3);
         
         pack();
-        //show();
         setVisible(true);
     }
     public static void main (String args[]){
-        P2PGUI gui = new P2PGUI();
+        FTPHandler handler = new FTPHandler();
+        P2PGUI gui = new P2PGUI(handler);
+    }
+
+    public void setReceivedRecords() {
+        receivedRecords = client.getReceivedRecords();
+        recordArea.setText("");
+        for (String s : receivedRecords) {
+            recordArea.setText(recordArea.getText() + "\n" + s);
+        }
     }
 }

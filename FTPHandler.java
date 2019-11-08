@@ -1,14 +1,17 @@
 public class FTPHandler {
+	private FTPClient client;
 
-	public static void main() {
-		FTPClient client = new FTPClient();
+	public FTPHandler() {
+		client = new FTPClient();
 		FTPServer server = new FTPServer();
 
-		Thread clientThread = new Thread(client);
-		Thread serverThread = new Thread(server);
-
 		//run client/server in a thread for GUI
-		clientThread.run();
-		serverThread.run();
+		client.start();
+		server.start();
 	}
+
+    public FTPClient getClient() {
+		return client;
+    }
+    
 }
