@@ -35,11 +35,11 @@ public void run() {
 	DataOutputStream outToServer = null;
 	DataInputStream inFromServer = null;
 	DataInputStream inData = null;
-
 	DataOutputStream outToP2P = null;
 	DataInputStream inFromP2P = null;
+
 	Socket P2PSocket = null;
-	
+	ServerSocket p2pRecordSocket = null;
 	ServerSocket welcomeData = null;
 	Socket dataSocket = null;
 	Socket ControlSocket = null;
@@ -218,48 +218,53 @@ public void run() {
 		String keyword = fileName;
 		//send keyword (from command argument - passed automatically from GUI)
 		outToP2P.writeUTF(keyword);
-		
+
+		//establish data connection, data
+		p2pRecordSocket = new ServerSocket(command_port);
+		dataSocket = p2pRecordSocket.accept();
+		BufferedReader dataIn = new BufferedReader(
+				new InputStreamReader(dataSocket.getInputStream()));
+		//get records
 		String record;
 		ArrayList<String> newRecords = getReceivedRecords();
 		newRecords.clear();
 		
-		record = inFromP2P.readUTF();
 		boolean isDone = false;
 		while (!isDone) {
 
-			record = inFromP2P.readUTF();
-			if (record.equals("DONE")) {
-				isDone = true;	
+				record = dataIn.readLine();
+				if (record.equals("DONE")) {
+					isDone = true;
+				}
+				else {
+					newRecords.add(record);
+				}
 			}
-			else {
-				newRecords.add(record);
-			}
-		}
-		
-		//setReceivedRecords(newRecords);	
 		//records are displayed by GUI
-	 	}
+		dataIn.close();
+		dataSocket.close();
+		p2pRecordSocket.close();
+		}
          else {
         	 System.out.println("\nInvalid command; use one of the listed commands\n");
          }
 		//welcomeFile.close();
-	//}
-	
 	}
+
     if (ControlSocket != null) {
     	outToServer.close();
     	inFromServer.close();
     	ControlSocket.close();
     	}
     if (P2PSocket != null) {
-	outToP2P.close();
-	inFromP2P.close();
-	P2PSocket.close();
-    }
+		outToP2P.close();
+		inFromP2P.close();
+		P2PSocket.close();
+    	}
 	}
-catch (Exception e) {
-System.out.println(e);
-}
+	catch (Exception e) {
+		System.out.println(e);
+	}
 }
 
 public ArrayList<String> getReceivedRecords() {
