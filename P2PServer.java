@@ -1,6 +1,7 @@
 import java.io.*; 
 import java.net.*;
 import java.util.*;
+import com.healthmarketscience.jackcess.*;
 
 
 public class P2PServer{
@@ -96,7 +97,7 @@ private static class HostThread implements Runnable {
 				String hostUsername = inFromClient.readUTF();
 				String hostName = inFromClient.readUTF();
 				String hostSpeed = inFromClient.readUTF();
-				Int userIP = controlSocket.getInetAddress();
+				//UserIP is nextConnection
 
 				Database db = DatabaseBuilder.open(new File("gvnapster.mdb"));
 				Table users = db.getTable("Users");
@@ -105,15 +106,13 @@ private static class HostThread implements Runnable {
 				Cursor defCursor = CursorBuilder.createCursor(files);
 				
 				//register user in database...
-				
+
 				//if user doesn't exist...
-				int i = 0;
-				for(Row row : userCursor.newEntryIterable(hostName)){
-					//update database
-					i++;
+				IndexCursor uCursor = CursorBuilder.createCursor(users.getIndex("first"));
+				for(Row row : uCursor){
+					users.addRow(Column.AUTO_NUMBER, first, users.last, userName, hostName, nextConnection, clientDataPort);
 				}
-				if(i==0)
-					users.addRow(user.userID, first, last, userName, hostName, userIP, clientDataPort);
+				
 				//upload shared file descriptions
 
 				//establish data connection
@@ -121,9 +120,9 @@ private static class HostThread implements Runnable {
                 		DataInputStream dataInFromClient = new DataInputStream(dataSocket.getInputStream());
 				//receive host file descriptions (summary text file)...
 				String fileName = dataInFromClient.readUTF();
-				String ileDesc = dataInFromClient.readUTF();
+				String fileDesc = dataInFromClient.readUTF();
 				//add file description to database...
-				files.addRow(files.fileID, users.userID, fileName, files.type, fileDesc);
+				files.addRow(Column.AUTO_NUMBER, fileID, userID, fileName, type, fileDesc);
 				//client is now connected!
 				break;
 			case "request":
@@ -131,7 +130,7 @@ private static class HostThread implements Runnable {
 				//DON'T establish data connection; no file is transferred here
 				
 				//receive keyword request
-				String fileName = inFromClient.readUTF();
+				String fName = inFromClient.readUTF();
 				
 				//assume that speed, filename, hostname, file description are all primary keys
 				//so that duplicates don't need to be sorted through?
