@@ -106,14 +106,11 @@ private static class HostThread implements Runnable {
 				Cursor defCursor = CursorBuilder.createCursor(files);
 				
 				//register user in database...
-
 				//if user doesn't exist...
 				IndexCursor uCursor = CursorBuilder.createCursor(users.getIndex("first"));
 				for(Row row : uCursor){
-					users.addRow(Column.AUTO_NUMBER, first, users.last, userName, hostName, nextConnection, clientDataPort);
+					users.addRow(Column.AUTO_NUMBER, hostUsername, hostName, hostSpeed);
 				}
-				
-				//upload shared file descriptions
 
 				//establish data connection
 				dataSocket = new Socket(nextConnection, port);
@@ -122,7 +119,8 @@ private static class HostThread implements Runnable {
 				String fileName = dataInFromClient.readUTF();
 				String fileDesc = dataInFromClient.readUTF();
 				//add file description to database...
-				files.addRow(Column.AUTO_NUMBER, fileID, userID, fileName, type, fileDesc);
+				//Hostname and connection speed are retreived from the entry in the USERS table
+				files.addRow(Column.AUTO_NUMBER, fileName, fileDesc);
 				//client is now connected!
 				break;
 			case "request":
@@ -139,10 +137,12 @@ private static class HostThread implements Runnable {
 				//for each matching description 
 					//get filename, speed, hostname
 					//send data to client
-				for(Row row : defCursor.newEntryIterable(fileDesc)){
-					db.name = outToClient.writeUTF();
-					hostSpeed= outToClient.writeUTF();
-					hostName = outToClient.writeUTF();
+				IndexCursor fCursor = CursorBuilder.createCursor(users.getIndex("description"));
+				for(Row r : fCursor.newEntryIterable(fName)){
+					hostSpeed = outToClient.writeUTF(r.get("hostSpeed"));
+					hostName = outToClient.writeUTF(r.get("hostName"));
+					portNum = outToClient.writeInt(r.get("port"));
+					currFile = outToClient.writeUTF(r.get("name"));
 				}
 				//returned all matching records
 				outToClient.writeUTF("done");
