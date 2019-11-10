@@ -1,0 +1,6 @@
+fileA.txt
+the first test file for project 2
+fileB.txt
+the second test file for project 2
+fileC.txt
+the third (orange) test file for project 2
