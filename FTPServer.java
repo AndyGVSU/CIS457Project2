@@ -6,21 +6,24 @@ public class FTPServer extends Thread {
  
 //public static void main(String[] args) throws IOException {
 public void run() {
-    final int controlPort = 12000;
+    int controlPort = 12000;
     ServerSocket welcomeSocket = null;
     Socket connectionSocket = null;
 
         boolean isOpen = false;
 
+	boolean setup = false;
+	while (!setup) {
       try {
         welcomeSocket = new ServerSocket(controlPort);
         isOpen = true;
-    System.out.println("Server set up on port "+controlPort);
+		System.out.println("Server set up on port "+controlPort);
+		setup = true;
       }catch(IOException ioEx){
-        System.out.println("\nUnable to set up port \n");
-        System.exit(1);
+        System.out.println("\nUnable to set up port " + controlPort +"\n");
+		controlPort++;
       }
-        
+	}
       try {
 	while(isOpen) {
         connectionSocket = welcomeSocket.accept();

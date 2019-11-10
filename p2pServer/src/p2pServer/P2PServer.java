@@ -58,6 +58,10 @@ private static class HostThread extends Thread {
 	Table users;
 	Table files;
 
+	private String hostName;
+	private String hostUsername;
+	private String hostSpeed;
+	
 	public HostThread(Socket ctrlSocket) throws Exception {
 		controlSocket = ctrlSocket;
 	
@@ -103,9 +107,9 @@ private static class HostThread extends Thread {
 				clientDataPort += 2;
 
 				//read username
-				String hostUsername = inFromClient.readUTF();
-				String hostName = inFromClient.readUTF();
-				String hostSpeed = inFromClient.readUTF();
+				hostUsername = inFromClient.readUTF();
+				hostName = inFromClient.readUTF();
+				hostSpeed = inFromClient.readUTF();
 				//outToClient.writeInt(clientDataPort);
 				//UserIP is nextConnection
 
@@ -156,7 +160,7 @@ private static class HostThread extends Thread {
 						Cursor fCursor = CursorBuilder.createCursor(files);
 						boolean fileDup = fCursor.findFirstRow(Collections.singletonMap("fileName", fileName));
 						boolean fileDup2 = fCursor.findFirstRow(Collections.singletonMap("userID", nextHostName));
-						if (!fileDup && !fileDup2)
+						if (!(fileDup && fileDup2))
 							files.addRow(Column.AUTO_NUMBER, fileName, fileDesc, nextHostName);
 						}
 						catch (Exception e) {
@@ -218,17 +222,16 @@ private static class HostThread extends Thread {
 				outToClient.writeUTF("DONE");
 				
 				break;
-		case "quit":
-			System.out.println("Client thread terminated.");
+		case "quitp2p":
+			System.out.println("Client thread terminated; user removed from P2P Database");
 			isOpen = false;
-
+			
 			//set host's availability to false:
 			//all files stored in that host will be irretrievable
 			//Remove user from the db
-			/*
-			for(Row r : userCursor.newEntryIterable(hostName)){
-				users.deleteRow(r);
-			*/
+			userCursor = CursorBuilder.createCursor(users);
+			userCursor.findFirstRow(Collections.singletonMap("hostName", hostName));
+			users.deleteRow(userCursor.getCurrentRow());
 			}
 			break;
 			}
