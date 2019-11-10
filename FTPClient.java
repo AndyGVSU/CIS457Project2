@@ -9,15 +9,13 @@ import javax.swing.*;
 public class FTPClient extends Thread {
 	
 private ArrayList<String> receivedRecords = new ArrayList<String>();
-private static String receivedCommand = null;
-private static boolean newCommand = false;
+private String receivedCommand = null;
+private boolean newCommand = false;
 private boolean recordsAvailable = false;
 
 public void run() {
 	try {
     String sentence; 
-    String modifiedSentence; 
-    String statusCode;
 	StringTokenizer tokens;
 	String userHostname;
 	String username;
@@ -31,18 +29,14 @@ public void run() {
 	boolean isOpen = true;
 	boolean connectionEstablished = false;
 	boolean P2PconnectionEstablished = false;
-	boolean notEnd = true;
 	boolean fileExists = false;
 	
 	DataOutputStream outToServer = null;
 	DataInputStream inFromServer = null;
-	DataInputStream inData = null;
 	DataOutputStream outToP2P = null;
 	DataInputStream inFromP2P = null;
 
 	Socket P2PSocket = null;
-	ServerSocket p2pRecordSocket = null;
-	ServerSocket welcomeData = null;
 	Socket dataSocket = null;
 	Socket ControlSocket = null;
 
@@ -334,7 +328,7 @@ public void setRecordsAvailable(boolean rec) {
 	recordsAvailable = rec;
 }
 
-public static void setCommand(String s) {
+public void setCommand(String s) {
 	//System.out.println("method call");
 	receivedCommand = s;
 	newCommand = true;

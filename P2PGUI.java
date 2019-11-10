@@ -150,7 +150,7 @@ public class P2PGUI extends JFrame {
     }
     public static void main (String args[]){
         FTPHandler handler = new FTPHandler();
-        P2PGUI gui = new P2PGUI(handler);
+        new P2PGUI(handler);
     }
 
     public void setReceivedRecords() {
