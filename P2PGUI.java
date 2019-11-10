@@ -73,7 +73,12 @@ public class P2PGUI extends Frame {
                     !port.isEmpty() && !speed.isEmpty()) {
                         //System.out.println("cmd sent");
                         client.setCommand("connectp2p "+serverName + " "+
-                            port+" "+username+" "+hostname+" "+speed);                       
+                            port+" "+username+" "+hostname+" "+speed);  
+                        serverInput.setText("");
+                        portInput.setText("");
+                        userInput.setText("");
+                        hostInput.setText(""); //clear boxes
+                        
                     }
                 }});
 
@@ -103,6 +108,7 @@ public class P2PGUI extends Frame {
                         client.setRecordsAvailable(false);
                         client.setCommand("request: "+keyword);
                         setReceivedRecords();
+                        keywordInput.setText("");//clear text box
                     }
                 }});
           
@@ -123,6 +129,7 @@ public class P2PGUI extends Frame {
                 String cmd = commandInput.getText();
                 if (!cmd.isEmpty()) {
                         client.setCommand(cmd);
+                        commandInput.setText(""); //clear text box
                     }
                 }});
                 
