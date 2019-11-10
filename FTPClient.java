@@ -9,8 +9,8 @@ import javax.swing.*;
 public class FTPClient extends Thread {
 	
 private ArrayList<String> receivedRecords = new ArrayList<String>();
-private String receivedCommand = null;
-private boolean newCommand = false;
+private static String receivedCommand = null;
+private static boolean newCommand = false;
 private boolean recordsAvailable = false;
 
 public void run() {
@@ -49,12 +49,8 @@ public void run() {
 	while(isOpen) {
 
 	//replace with a hang if possible?
-	while(!newCommand) {
-		// wait for new command
-		System.out.print("");
-	}
-	
-	//System.out.println("Received");
+	while(!newCommand);
+	System.out.println("Received");
 	sentence = receivedCommand;
 	newCommand = false;
     
@@ -299,11 +295,17 @@ public void run() {
 		//dataSocket.close();
 		//p2pRecordSocket.close();
 		}
-         else {
-        	 System.out.println("\nInvalid command; use one of the listed commands\n");
-         }
+    else if (command.equals("help")){
+        System.out.println("connect [server] [port]: connects to a server (not another peer)");
+        System.out.println("connectp2p [server] [port] [user] [target user] [connection speed]: connect to another peer to exchange files");
+        System.out.println("request: [file]: retrieve a file");
+	}
+    else {
+        System.out.println("\nInvalid command; use one of the listed commands\n");
+    }
 		//welcomeFile.close();
 	}
+	
 
     if (ControlSocket != null) {
     	outToServer.close();
@@ -332,9 +334,10 @@ public void setRecordsAvailable(boolean rec) {
 	recordsAvailable = rec;
 }
 
-public void setCommand(String s) {
+public static void setCommand(String s) {
 	//System.out.println("method call");
 	receivedCommand = s;
 	newCommand = true;
+	//System.out.println(newCommand);
 }
 }

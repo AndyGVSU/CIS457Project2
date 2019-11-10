@@ -77,7 +77,12 @@ public class P2PGUI extends JFrame {
                     !port.isEmpty() && !speed.isEmpty()) {
                         //System.out.println("cmd sent");
                         client.setCommand("connectp2p "+serverName + " "+
-                            port+" "+username+" "+hostname+" "+speed);                       
+                            port+" "+username+" "+hostname+" "+speed);  
+                        serverInput.setText("");
+                        portInput.setText("");
+                        userInput.setText("");
+                        hostInput.setText(""); //clear boxes
+                        
                     }
                 }});
 
@@ -106,6 +111,7 @@ public class P2PGUI extends JFrame {
                         client.setRecordsAvailable(false);
                         client.setCommand("request: "+keyword);
                         setReceivedRecords();
+                        keywordInput.setText("");//clear text box
                     }
                 }});
           
@@ -157,7 +163,6 @@ public class P2PGUI extends JFrame {
             recordArea.setText(recordArea.getText() + nextRecord);
         }
     }
-
     private class closeListener implements WindowListener {
 
         public void windowClosed(WindowEvent e) {}
@@ -172,3 +177,4 @@ public class P2PGUI extends JFrame {
         public void windowOpened(WindowEvent e) {}
     }
 }
+
