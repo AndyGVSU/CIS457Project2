@@ -4,7 +4,7 @@ import javax.swing.*;
 import javax.swing.BoxLayout;
 import java.util.*;
 
-public class P2PGUI extends Frame {
+public class P2PGUI extends JFrame {
 
     final static String TITLE = "File Transfer Client";
     private Panel panel1;
@@ -40,7 +40,11 @@ public class P2PGUI extends Frame {
         super(TITLE);
         setSize(400,600);
         setVisible(true);
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        setContentPane(contentPanel);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new closeListener());
 
         this.handler = h;
         this.client = handler.getClient();
@@ -82,7 +86,6 @@ public class P2PGUI extends Frame {
                     }
                 }});
 
-
         //add them in the proper order...
         panel1.add(serverDisplay);
         panel1.add(serverInput);
@@ -95,7 +98,7 @@ public class P2PGUI extends Frame {
         panel1.add(speedDisplay);
         panel1.add(speedInput);
         panel1.add(connectButton);
-        add(panel1);
+        contentPanel.add(panel1);
         
         //Second section for file search -------
           panel2 = new Panel(new FlowLayout());
@@ -117,11 +120,11 @@ public class P2PGUI extends Frame {
         panel2.add(keywordInput);
         panel2.add(keywordButton);
         panel2.add(recordArea);
-        add(panel2);
+        contentPanel.add(panel2);
         
         //third section: commands
           panel3 = new Panel(new FlowLayout());
-          commandDisplay = new Label("Enter command:");
+          commandDisplay = new Label("Enter FTP command:");
           commandInput = new TextField("",20);
           commandButton = new Button("Go");
           commandButton.addActionListener(new java.awt.event.ActionListener() {
@@ -129,18 +132,18 @@ public class P2PGUI extends Frame {
                 String cmd = commandInput.getText();
                 if (!cmd.isEmpty()) {
                         client.setCommand(cmd);
-                        commandInput.setText(""); //clear text box
+                        outputArea.setText(outputArea.getText() + "\n" + cmd);
                     }
                 }});
                 
-          outputArea = new TextArea();
+        outputArea = new TextArea();
         outputArea.setEditable(false);
         
         panel3.add(commandDisplay);
         panel3.add(commandInput);
         panel3.add(commandButton);
         panel3.add(outputArea);
-        add(panel3);
+        contentPanel.add(panel3);
         
         pack();
         setVisible(true);
@@ -160,4 +163,18 @@ public class P2PGUI extends Frame {
             recordArea.setText(recordArea.getText() + nextRecord);
         }
     }
+    private class closeListener implements WindowListener {
+
+        public void windowClosed(WindowEvent e) {}
+        public void windowDeactivated(WindowEvent e) {}
+        public void windowActivated(WindowEvent e) {}
+        public void windowDeiconified(WindowEvent e) {}
+        public void windowIconified(WindowEvent e) {}
+        public void windowClosing(WindowEvent e) {
+            client.setCommand("quitp2p");
+            System.exit(0);
+        }
+        public void windowOpened(WindowEvent e) {}
+    }
 }
+

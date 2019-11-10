@@ -48,8 +48,6 @@ public void run() {
 
 	while(isOpen) {
 
-	//System.out.println("\n|| FTP Client Project 1 ~ CIS 457 ||");
-
 	//replace with a hang if possible?
 	while(!newCommand);
 	System.out.println("Received");
@@ -134,8 +132,6 @@ public void run() {
 			FileInputStream fileIn = null;
 			File currentDirectory = new File("./"+"filelist.txt");
 
-			//System.out.println(fileName);
-
 			try {
 				fileIn = new FileInputStream(currentDirectory);
 			}
@@ -152,10 +148,10 @@ public void run() {
 			BufferedReader fileStream = new BufferedReader(
 				new FileReader(currentDirectory));
 
-				//for sending file
-				BufferedWriter dataOut = new BufferedWriter(
-				new OutputStreamWriter(sendFile.accept().getOutputStream()));
-			
+			//for sending file
+			BufferedWriter dataOut = new BufferedWriter(
+			new OutputStreamWriter(sendFile.accept().getOutputStream()));
+		
 			String nextLine;
 				while (true) {
 				try {
@@ -188,10 +184,9 @@ public void run() {
 			P2PconnectionEstablished = false;
 		}
 	}	
-	//remove?
-         else if(sentence.equals("quit")) {
-        	 outToServer.writeUTF(command);
-        	 outToServer.writeInt(command_port);
+         else if(sentence.equals("quitp2p")) {
+        	 outToP2P.writeUTF(command);
+        	 outToP2P.writeInt(command_port);
         	 isOpen = false;
         	 System.out.println("Have a nice day!");
          }
