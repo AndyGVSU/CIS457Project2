@@ -10,21 +10,23 @@ public class FTPClient extends Thread {
 	
 private ArrayList<String> receivedRecords = new ArrayList<String>();
 private String receivedCommand = null;
-boolean newCommand = false;
+private boolean newCommand = false;
+private boolean recordsAvailable = false;
 
 public void run() {
 	try {
     String sentence; 
     String modifiedSentence; 
     String statusCode;
-    String fileName = null;
 	StringTokenizer tokens;
 	String userHostname;
 	String username;
 	String connectionSpeed;
+	String fileName = null;
     
    	int controlPort = 12000;
 	int command_port = 0;
+	int p2pCommandPort = 0;
 	
 	boolean isOpen = true;
 	boolean connectionEstablished = false;
@@ -43,19 +45,18 @@ public void run() {
 	ServerSocket welcomeData = null;
 	Socket dataSocket = null;
 	Socket ControlSocket = null;
-	
-	//System.out.println("\n|| FTP Client Project 1 ~ CIS 457 ||");
 
 	while(isOpen) {
 
-        //System.out.println("\nInput next command:\nconnect <host> <port> | quit | list | stor: <file> | retr: <file>");  
-	
-	//BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-	
+	//System.out.println("\n|| FTP Client Project 1 ~ CIS 457 ||");
+
+	//replace with a hang if possible?
 	while(!newCommand) {
 		// wait for new command
+		System.out.print("");
 	}
 	
+	//System.out.println("Received");
 	sentence = receivedCommand;
 	newCommand = false;
     
@@ -87,14 +88,14 @@ public void run() {
     			
     			ControlSocket = new Socket(serverName, controlPort);
     			System.out.println("You are connected to " + serverName + ":" + controlPort);
-			connectionEstablished = true;
+				connectionEstablished = true;
 
         		outToServer = new DataOutputStream(ControlSocket.getOutputStream());
         		inFromServer = new DataInputStream(ControlSocket.getInputStream());
         	
-			outToServer.writeUTF(command);
-			//permanent port for data connection
-			command_port = inFromServer.readInt();
+				outToServer.writeUTF(command);
+				//permanent port for data connection
+				command_port = inFromServer.readInt();
     		}
     		catch (Exception e) {
     			System.out.println("Failed to set up socket.");
@@ -104,7 +105,6 @@ public void run() {
 	}
 	else if(command.equals("connectp2p")) {
 		//connect with P2P server
-		
 		String serverName = tokens.nextToken();
 		controlPort = Integer.parseInt(tokens.nextToken());
 		username = tokens.nextToken();
@@ -124,11 +124,69 @@ public void run() {
 			System.out.println("You are connected to P2P Server " + serverName + ":" + controlPort);
 			P2PconnectionEstablished = true;
 
-				outToP2P = new DataOutputStream(P2PSocket.getOutputStream());
-				inFromP2P = new DataInputStream(P2PSocket.getInputStream());
+			outToP2P = new DataOutputStream(P2PSocket.getOutputStream());
+			inFromP2P = new DataInputStream(P2PSocket.getInputStream());
 			
 			outToP2P.writeUTF(command);
-		}
+			p2pCommandPort = inFromP2P.readInt();
+
+			outToP2P.writeUTF(username);
+			outToP2P.writeUTF(userHostname);
+			outToP2P.writeUTF(connectionSpeed);
+
+			fileExists = true;
+			FileInputStream fileIn = null;
+			File currentDirectory = new File("./"+"filelist.txt");
+
+			//System.out.println(fileName);
+
+			try {
+				fileIn = new FileInputStream(currentDirectory);
+			}
+			catch (FileNotFoundException e) {
+				System.out.println("\n filelist.txt not found or is a directory.\n");
+				fileExists = false;
+			}
+			if (fileExists) {
+			
+			ServerSocket sendFile = new ServerSocket(p2pCommandPort);
+			outToP2P.writeInt(1);
+			outToP2P.writeInt(p2pCommandPort);
+			//for reading file
+			BufferedReader fileStream = new BufferedReader(
+				new FileReader(currentDirectory));
+
+				//for sending file
+				BufferedWriter dataOut = new BufferedWriter(
+				new OutputStreamWriter(sendFile.accept().getOutputStream()));
+			
+			String nextLine;
+				while (true) {
+				try {
+				nextLine = fileStream.readLine();
+				
+				if (nextLine == null)
+					break;
+				
+					dataOut.write(nextLine, 0, nextLine.length());
+					dataOut.newLine();
+				}
+				catch (Exception e) {
+					System.out.println("\nError writing file.\n");
+				}	
+			}
+				dataOut.write("EOF",0,3);
+				System.out.println("\nSent filelist.txt successfully.\n");
+			
+			sendFile.close();
+			fileIn.close();
+			fileStream.close();
+			dataOut.close();
+			}
+			else {
+				outToP2P.writeInt(0);
+			}
+			}
 		catch (Exception e) {
 			System.out.println("Failed to set up P2P socket.");
 			P2PconnectionEstablished = false;
@@ -148,10 +206,9 @@ public void run() {
 		outToServer.writeInt(command_port);
 		
 		//get extra arguments
-		if (!command.equals("list")) {
-			fileName = tokens.nextToken();
-			outToServer.writeUTF(fileName);
-		}
+		fileName = tokens.nextToken();
+		outToServer.writeUTF(fileName);
+		
 
 		//establish data connection
 		ServerSocket welcomeFile = new ServerSocket(command_port);
@@ -215,35 +272,37 @@ public void run() {
 		}
 	}
 	 else if (P2PconnectionEstablished && command.equals("request:")) {
-		String keyword = fileName;
-		//send keyword (from command argument - passed automatically from GUI)
-		outToP2P.writeUTF(keyword);
 
-		//establish data connection, data
-		p2pRecordSocket = new ServerSocket(command_port);
-		dataSocket = p2pRecordSocket.accept();
-		BufferedReader dataIn = new BufferedReader(
-				new InputStreamReader(dataSocket.getInputStream()));
-		//get records
-		String record;
-		ArrayList<String> newRecords = getReceivedRecords();
-		newRecords.clear();
-		
+		outToP2P.writeUTF(sentence);
+		outToP2P.writeInt(command_port);
+
+		String nextSpeed;
+		String nextHostName;
+		String nextFileName;
+		receivedRecords.clear();
+
 		boolean isDone = false;
 		while (!isDone) {
-
-				record = dataIn.readLine();
-				if (record.equals("DONE")) {
-					isDone = true;
-				}
-				else {
-					newRecords.add(record);
-				}
+			nextSpeed = inFromP2P.readUTF();
+			
+			if (nextSpeed.equals("DONE")) {
+				isDone = true;
 			}
+			else {
+				nextHostName = inFromP2P.readUTF();
+				nextFileName = inFromP2P.readUTF();
+
+				receivedRecords.add(nextSpeed);
+				receivedRecords.add(nextHostName);
+				receivedRecords.add(nextFileName);
+			}
+			}
+		System.out.println("Request successful.");
+		setRecordsAvailable(true);
 		//records are displayed by GUI
-		dataIn.close();
-		dataSocket.close();
-		p2pRecordSocket.close();
+		//dataIn.close();
+		//dataSocket.close();
+		//p2pRecordSocket.close();
 		}
          else {
         	 System.out.println("\nInvalid command; use one of the listed commands\n");
@@ -268,10 +327,18 @@ public void run() {
 }
 
 public ArrayList<String> getReceivedRecords() {
+	while (!recordsAvailable) {
+		System.out.print("");
+	}
 	return receivedRecords;
 }
 
+public void setRecordsAvailable(boolean rec) {
+	recordsAvailable = rec;
+}
+
 public void setCommand(String s) {
+	//System.out.println("method call");
 	receivedCommand = s;
 	newCommand = true;
 }

@@ -27,7 +27,7 @@ public void run() {
 
 		try {
 		ClientCommand request = new ClientCommand(connectionSocket);
-		Thread requestThread = new Thread(request); 
+		Thread requestThread = new Thread(request);
 		requestThread.start();
 		}
 		catch (Exception e) {
@@ -42,13 +42,16 @@ public void run() {
 }  
 
 private static class ClientCommand implements Runnable {
+	String fromClient;
+    String clientCommand = "";
+	String nextConnection;
+
+    int port;
+	static int clientDataPort = 12002;
+	
 	Socket controlSocket;
 	Socket dataSocket;
-        String fromClient;
-        String clientCommand = "";
-	String nextConnection;
-    	int port;
-    	static int clientDataPort = 12002;
+
 	DataOutputStream outToClient;
 	DataInputStream inFromClient;
 

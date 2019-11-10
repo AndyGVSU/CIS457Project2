@@ -33,7 +33,7 @@ public class P2PGUI extends Frame {
 
     private FTPHandler handler;
     private FTPClient client;
-    ArrayList<String> receivedRecords;
+    ArrayList<String> receivedRecords = new ArrayList<String>();
     
     public P2PGUI(FTPHandler h) {
 
@@ -47,13 +47,13 @@ public class P2PGUI extends Frame {
         //First section for connecting to server (takes their info) -------
          panel1 = new Panel(new FlowLayout());
          serverDisplay = new Label("Server Hostname:");
-         serverInput = new TextField("",20);
+         serverInput = new TextField("localhost",20);
          portDisplay = new Label("Port:");
-         portInput = new TextField("",20);
+         portInput = new TextField("11900",20);
          userDisplay = new Label("Username:");
-         userInput = new TextField("",20);
+         userInput = new TextField("andy",20);
          hostDisplay = new Label("Hostname:");
-         hostInput = new TextField("",20);
+         hostInput = new TextField("dc15",20);
          speedDisplay = new Label("Speed:");
          speedInput = new Choice();
         speedInput.add("Ethernet"); //need more options?
@@ -71,8 +71,9 @@ public class P2PGUI extends Frame {
 
                 if (!username.isEmpty() && !hostname.isEmpty() &&
                     !port.isEmpty() && !speed.isEmpty()) {
+                        //System.out.println("cmd sent");
                         client.setCommand("connectp2p "+serverName + " "+
-                            port+" "+username+" "+hostname+" "+speed);
+                            port+" "+username+" "+hostname+" "+speed);                       
                     }
                 }});
 
@@ -99,11 +100,13 @@ public class P2PGUI extends Frame {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 String keyword = keywordInput.getText();
                 if (!keyword.isEmpty()) {
+                        client.setRecordsAvailable(false);
                         client.setCommand("request: "+keyword);
+                        setReceivedRecords();
                     }
                 }});
           
-          recordArea = new TextArea();
+        recordArea = new TextArea();
           
         panel2.add(keywordInput);
         panel2.add(keywordButton);
@@ -143,8 +146,11 @@ public class P2PGUI extends Frame {
     public void setReceivedRecords() {
         receivedRecords = client.getReceivedRecords();
         recordArea.setText("");
-        for (String s : receivedRecords) {
-            recordArea.setText(recordArea.getText() + "\n" + s);
+        String nextRecord;
+        for (int i = 0; i < receivedRecords.size(); i+=3) {
+            nextRecord = "\n" + receivedRecords.get(i) + " " + receivedRecords.get(i+1) + 
+                " " + receivedRecords.get(i+2);
+            recordArea.setText(recordArea.getText() + nextRecord);
         }
     }
 }
