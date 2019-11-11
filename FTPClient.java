@@ -43,8 +43,10 @@ public void run() {
 	while(isOpen) {
 
 	//replace with a hang if possible?
-	while(!newCommand);
-	System.out.println("Received");
+	while(!newCommand) {
+		System.out.print("");
+	}
+	//System.out.println("Received");
 	sentence = receivedCommand;
 	newCommand = false;
     
