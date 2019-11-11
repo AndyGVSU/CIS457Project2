@@ -78,11 +78,12 @@ public class P2PGUI extends JFrame {
                         //System.out.println("cmd sent");
                         client.setCommand("connectp2p "+serverName + " "+
                             port+" "+username+" "+hostname+" "+speed);  
+                        /*
                         serverInput.setText("");
                         portInput.setText("");
                         userInput.setText("");
                         hostInput.setText(""); //clear boxes
-                        
+                        */
                     }
                 }});
 
